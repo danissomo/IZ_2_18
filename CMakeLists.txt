@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.12.4)
-set(STATIC_LIB_PORJECT with_static)
-set(SHARED_LIB_PORJECT with_shared)
+cmake_minimum_required(VERSION 3.12)
 
-project("${STATIC_LIB_PORJECT}")
-project("${SHARED_LIB_PORJECT}")
 
-##
+project(IZ_2_18)
+
+set(STATIC_LIB_PROJECT with_static)
+set(SHARED_LIB_PROJECT with_shared)
+
 ### Test definitions ###
 ##
 
@@ -20,7 +20,7 @@ add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
         ${CMAKE_BINARY_DIR}/googletest-build)
 
 enable_testing()
-add_subdirectory(./tests)
+
 
 
 
@@ -45,8 +45,22 @@ else ()
 endif()
 
 file(GLOB sources "src/*.cpp")
-add_executable(${STATIC_LIB_PORJECT} ${sources})
-
-add_executable(${SHARED_LIB_PORJECT} ${sources})
 
 
+
+add_subdirectory(src/neq_max_seq)
+
+add_subdirectory(./tests)
+
+
+
+add_executable("${STATIC_LIB_PROJECT}" ${sources})
+target_link_libraries("${STATIC_LIB_PROJECT}" neq_max_seq_static )
+target_include_directories("${STATIC_LIB_PROJECT}" PUBLIC "src/include/")
+
+
+
+add_executable("${SHARED_LIB_PROJECT}" ${sources})
+target_link_libraries("${SHARED_LIB_PROJECT}" neq_max_seq_shared )
+target_include_directories("${SHARED_LIB_PROJECT}" PUBLIC "src/include/")
+message(STATUS "include & link")
