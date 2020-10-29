@@ -2,34 +2,30 @@
 
 
 
-neq_max_seq::neq_max_seq(char* external_memory , long long n , bool multi_process_flag ) {
-    if (external_memory != nullptr){
-        memory = external_memory;
-        memory_len = n;
-    }else{
-        memory_len = 100*1024*1024;
-        memory = new char[memory_len];
-    }
-        
+neq_max_seq::neq_max_seq(int shm, long long n , bool multi_process_flag ) {
+    srand(time(0));
+    shmid = shm;
+    memory_len = n;
+
     if (multi_process_flag)
         cores_count = sysconf(_SC_NPROCESSORS_ONLN);
     else 
         cores_count = 1;
 
-    process_result = new long[cores_count];
-    *process_take_task  = 0;
-
+   
+    
+    
 }
-
 neq_max_seq::~neq_max_seq() {
-    delete[] memory;
-    delete[] process_result;
-    delete process_take_task;
+    shmdt(result_ptr);
 }
 
-long neq_max_seq::start(){
+int  neq_max_seq::start(){
+    result_shmid =  shmget(rand(), cores_count*sizeof(cores_count) , IPC_CREAT|0666);
+    if(result_shmid == -1) exit(1);
     pid_t pid;
     for (size_t i = 0; i < cores_count; i++){
+       
         switch (pid = fork()){
         case -1:
             std::cerr << "fork error";
@@ -40,22 +36,47 @@ long neq_max_seq::start(){
             exit(0);
             break;
         case 1:
+            process_take_task++;
             break;
         }
     }
-    long max = -1;
-    for (size_t i = 0; i < cores_count; i++){
-        int status;
+    int status;
+    for(int i = 0; i < cores_count; i++)
         wait(&status);
-        if(max < process_result[i]) max = process_result[i];
-        
-    }
+    result_ptr = (long long*) shmat(result_shmid, 0, 0);
+    auto r = result_ptr[0];
+    shmctl(result_shmid, IPC_RMID, nullptr);
+    process_take_task = 0;
     
-    return max;    
+    return r;    
 }
 
 
 void neq_max_seq::child(){
-    process_take_task++;
-    std::cout << getpid()<<" "<< process_take_task << std::endl;
+    char *memory;
+    if(shmid!=-1)  memory = (char*)shmat(shmid, nullptr, 0);    
+    else{
+        memory_len = 100*1024*1024;
+        memory = new char[memory_len];
+    }
+    
+    
+    long long max = 0;
+    long long seq =1;
+    for (size_t i = 1; i < memory_len; i++){
+        
+        if( seq > max) 
+            max= seq;
+    
+        if(memory[i] != memory[i-1]) seq++;
+        else
+            seq =1;
+    }
+   
+    result_ptr = (long long*)shmat(result_shmid, 0,0);
+    result_ptr[process_take_task] =max;
+    std::cout << int(memory[3]);
+    shmdt(result_ptr);
+    if(shmid != -1) shmdt(memory);
+    else delete[] memory;
 }

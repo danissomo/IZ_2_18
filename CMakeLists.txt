@@ -36,9 +36,10 @@ elseif ("${TARGET_CPU}" STREQUAL "x86")
     set_property (GLOBAL PROPERTY FIND_LIBRARY_USE_LIB32_PATHS TRUE)
 
     if (GCC)
-        add_compile_options(-Wall -Werror -Wpedantic)
+        
         set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
         set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -m32")
+        add_compile_options(-Wall -Werror -Wpedantic)
     endif ()
 else ()
     message (FATAL_ERROR "Unsupported CPU: ${TARGET_CPU}")
@@ -50,7 +51,7 @@ file(GLOB sources "src/*.cpp")
 
 add_subdirectory(src/neq_max_seq)
 
-add_subdirectory(./tests)
+add_subdirectory(tests)
 
 
 

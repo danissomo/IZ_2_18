@@ -2,7 +2,6 @@ file(GLOB sources "${PROJECT_SOURCE_DIR}/src/*.cpp")
 list(REMOVE_ITEM sources "${PROJECT_SOURCE_DIR}/src/main.cpp")
 
 file(GLOB tests "${PROJECT_SOURCE_DIR}/tests/*.cpp")
-list(REMOVE_ITEM tests "${PROJECT_SOURCE_DIR}/tests/main.cpp")
 
 foreach(file ${tests})
   set(name)
@@ -11,5 +10,6 @@ foreach(file ${tests})
   target_link_libraries("${name}_tests" gtest_main)
   target_include_directories("${name}_tests" PUBLIC ${PROJECT_SOURCE_DIR}/src/include)
   add_test(NAME ${name} COMMAND "${name}_tests")
-  #target_link_libraries("${name}_tests" neq_max_seq_static)
+  target_link_libraries("${name}_tests" neq_max_seq_static)
+  
 endforeach()
